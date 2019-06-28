@@ -1,7 +1,7 @@
 use crate::{Error, ErrorKind};
 use libc::{flock, EWOULDBLOCK, LOCK_EX, LOCK_NB, LOCK_UN};
-use std::os::unix::io::AsRawFd;
 use std::ops;
+use std::os::unix::io::AsRawFd;
 
 /// A guard that unlocks the file descriptor when it goes out of scope.
 #[derive(Debug)]
@@ -38,7 +38,7 @@ impl<T: AsRawFd> Drop for FdLockGuard<'_, T> {
 /// A file descriptor lock.
 #[derive(Debug)]
 pub struct FdLock<T: AsRawFd> {
-    t: T
+    t: T,
 }
 
 impl<T: AsRawFd> FdLock<T> {

@@ -1,6 +1,6 @@
+use std::ops;
 use std::os::windows::io::{AsRawHandle, RawHandle};
 use winapi::um::fileapi::{LockFile, LockFileEx, UnlockFile, LOCKFILE_EXCLUSIVE_LOCK};
-use std::ops;
 
 /// Lock a file descriptor.
 #[inline]
@@ -57,7 +57,7 @@ impl<T: AsRawHandle> Drop for FdLockGuard<'_, T> {
 /// A file descriptor lock.
 #[derive(Debug)]
 pub struct FdLock<T: AsRawHandle> {
-    t: T
+    t: T,
 }
 
 impl<T: AsRawHandle> FdLock<T> {
