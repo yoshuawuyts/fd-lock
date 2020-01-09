@@ -1,30 +1,28 @@
 use std::ops;
-use std::os::windows::io::{AsRawHandle, RawHandle};
+use std::os::windows::io::{AsRawHandle};
 use std::io::{Error, ErrorKind};
-use std::os::windows::raw::HANDLE;
 
-use winapi::um::fileapi::{LockFile, LockFileEx, UnlockFile};
-use winapi::um::minwinbase::LOCKFILE_EXCLUSIVE_LOCK;
+use winapi::um::fileapi::{LockFile, UnlockFile};
 
-/// Lock a file descriptor.
-#[inline]
-pub fn lock(handle: RawHandle) -> Result<FdLockGuard<'_>, Error> {
-    if unsafe { LockFile(handle, 0, 0, 1, 0) } {
-        Ok(FdLockGuard { handle })
-    } else {
-        Err(ErrorKind::Locked.into())
-    }
-}
+// /// Lock a file descriptor.
+// #[inline]
+// pub fn lock(handle: RawHandle) -> Result<FdLockGuard<'_, T>, Error> {
+//     if unsafe { LockFile(handle.clone(), 0, 0, 1, 0) } {
+//         Ok(FdLockGuard { handle })
+//     } else {
+//         Err(ErrorKind::Locked.into())
+//     }
+// }
 
-/// Unlock a file descriptor.
-#[inline]
-fn unlock(handle: HANDLE) -> Result<(), Error> {
-    if unsafe { UnlockFile(handle, 0, 0, 1, 0) } {
-        Ok(())
-    } else {
-        Err(ErrorKind::Locked.into())
-    }
-}
+// /// Unlock a file descriptor.
+// #[inline]
+// fn unlock(handle: HANDLE) -> Result<(), Error> {
+//     if unsafe { UnlockFile(handle, 0, 0, 1, 0) } {
+//         Ok(())
+//     } else {
+//         Err(ErrorKind::Locked.into())
+//     }
+// }
 
 /// A guard that unlocks the file descriptor when it goes out of scope.
 #[derive(Debug)]
@@ -51,8 +49,8 @@ impl<T: AsRawHandle> ops::DerefMut for FdLockGuard<'_, T> {
 impl<T: AsRawHandle> Drop for FdLockGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        let fd = self.lock.t.as_raw_fd();
-        if unsafe { !UnlockFile(handle, 0, 0, 1, 0) } {
+        let handle = self.lock.t.as_raw_handle();
+        if unsafe { !UnlockFile(handle, 0, 0, 1, 0) } == 0 {
             panic!("Could not unlock the file descriptor");
         }
     }
@@ -71,20 +69,21 @@ impl<T: AsRawHandle> FdLock<T> {
         FdLock { t }
     }
 
-    /// Acquires a new lock, blocking the current thread until it's able to do so.
-    ///
-    /// This function will block the local thread until it is available to acquire the lock. Upon
-    /// returning, the thread is the only thread with the lock held. An RAII guard is returned to allow
-    /// scoped unlock of the lock. When the guard goes out of scope, the lock will be unlocked.
-    #[inline]
-    pub fn lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
-        let fd = self.t.as_raw_fd();
-        if unsafe { LockFileEx(handle, LOCKFILE_EXCLUSIVE_LOCK, 0, 1, 0) } {
-            Ok(FdLockGuard { lock: self })
-        } else {
-            Err(ErrorKind::Other.into())
-        }
-    }
+    // /// Acquires a new lock, blocking the current thread until it's able to do so.
+    // ///
+    // /// This function will block the local thread until it is available to acquire the lock. Upon
+    // /// returning, the thread is the only thread with the lock held. An RAII guard is returned to allow
+    // /// scoped unlock of the lock. When the guard goes out of scope, the lock will be unlocked.
+    // #[inline]
+    // pub fn lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
+    //     let handle = self.t.as_raw_handle();
+    //     let overlapped = ptr::null_mut()  
+    //     if unsafe { LockFile(handle, 0, 0, 1, 0) } {
+    //         Ok(FdLockGuard { lock: self })
+    //     } else {
+    //         Err(ErrorKind::Other.into())
+    //     }
+    // }
 
     /// Attempts to acquire this lock.
     ///
@@ -94,11 +93,11 @@ impl<T: AsRawHandle> FdLock<T> {
     /// This function does not block.
     #[inline]
     pub fn try_lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
-        let fd = self.t.as_raw_fd();
-        if unsafe { LockFile(handle, 0, 0, 1, 0) } {
-            Ok(FdLockGuard { lock: self })
-        } else {
+        let handle = self.t.as_raw_handle();
+        if unsafe { LockFile(handle, 0, 0, 1, 0) } == 0 {
             Err(ErrorKind::Other.into())
+        } else {
+            Ok(FdLockGuard { lock: self })
         }
     }
 }
