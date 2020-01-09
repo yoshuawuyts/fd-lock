@@ -1,6 +1,6 @@
-use std::ops;
-use std::os::windows::io::{AsRawHandle};
 use std::io::{Error, ErrorKind};
+use std::ops;
+use std::os::windows::io::AsRawHandle;
 
 use winapi::um::fileapi::{LockFile, UnlockFile};
 
@@ -77,7 +77,7 @@ impl<T: AsRawHandle> FdLock<T> {
     // #[inline]
     // pub fn lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
     //     let handle = self.t.as_raw_handle();
-    //     let overlapped = ptr::null_mut()  
+    //     let overlapped = ptr::null_mut()
     //     if unsafe { LockFile(handle, 0, 0, 1, 0) } {
     //         Ok(FdLockGuard { lock: self })
     //     } else {
