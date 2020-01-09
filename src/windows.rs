@@ -1,12 +1,16 @@
 use std::ops;
 use std::os::windows::io::{AsRawHandle, RawHandle};
-use winapi::um::fileapi::{LockFile, LockFileEx, UnlockFile, LOCKFILE_EXCLUSIVE_LOCK};
+use std::io::{Error, ErrorKind};
+use std::os::windows::raw::HANDLE;
+
+use winapi::um::fileapi::{LockFile, LockFileEx, UnlockFile};
+use winapi::um::minwinbase::LOCKFILE_EXCLUSIVE_LOCK;
 
 /// Lock a file descriptor.
 #[inline]
-pub fn lock(handle: RawHandle) -> Result<LockGuard, Error> {
+pub fn lock(handle: RawHandle) -> Result<FdLockGuard<'_>, Error> {
     if unsafe { LockFile(handle, 0, 0, 1, 0) } {
-        Ok(LockGuard { handle })
+        Ok(FdLockGuard { handle })
     } else {
         Err(ErrorKind::Locked.into())
     }
