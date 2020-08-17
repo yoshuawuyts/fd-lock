@@ -10,14 +10,18 @@
 //! # use tempfile::tempfile;
 //! # use std::io::prelude::*;
 //! # use std::fs::File;
+//! # use std::error::Error;
 //!
-//! # fn main() -> Result<(), failure::Error> {
+//! # fn main() -> Result<(), Box<dyn Error>> {
 //! // Lock a file and write to it.
 //! let mut f = FdLock::new(tempfile()?);
-//! f.try_lock()?.write_all(b"chashu cat")?;
+//! f.lock()?.write_all(b"chashu cat")?;
+//!
+//! // Non-blocking flavour
+//! f.try_lock()?.write_all(b"yay")?;
 //!
 //! // Locks can also be held for extended durations.
-//! let mut f = f.try_lock()?;
+//! let mut f = f.lock()?;
 //! f.write_all(b"nori cat")?;
 //! f.write_all(b"bird!")?;
 //! # Ok(())}
