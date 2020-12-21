@@ -1,7 +1,8 @@
-use std::io::{Error, ErrorKind};
+use std::io;
 use std::ops;
 use std::os::windows::io::AsRawHandle;
 
+use io::{Error, ErrorKind};
 use winapi::um::fileapi::{LockFile, UnlockFile};
 
 // /// Lock a file descriptor.
@@ -92,10 +93,13 @@ impl<T: AsRawHandle> FdLock<T> {
     ///
     /// This function does not block.
     #[inline]
-    pub fn try_lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
+    pub fn try_lock(&mut self) -> io::Result<FdLockGuard<'_, T>> {
         let handle = self.t.as_raw_handle();
         if unsafe { LockFile(handle, 0, 0, 1, 0) } == 0 {
-            Err(ErrorKind::Other.into())
+            match Error::last_os_error().kind() {
+                kind @ ErrorKind::WouldBlock => Err(kind.into()),
+                _ => Err(Error::new(ErrorKind::AlreadyExists, "FdLock already held")),
+            }
         } else {
             Ok(FdLockGuard { lock: self })
         }

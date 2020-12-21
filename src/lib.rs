@@ -8,10 +8,10 @@
 //! ```rust
 //! use fd_lock::FdLock;
 //! # use tempfile::tempfile;
-//! # use std::io::prelude::*;
+//! # use std::io::{self, prelude::*};
 //! # use std::fs::File;
 //!
-//! # fn main() -> Result<(), failure::Error> {
+//! # fn main() -> io::Result<()> {
 //! // Lock a file and write to it.
 //! let mut f = FdLock::new(tempfile()?);
 //! f.try_lock()?.write_all(b"chashu cat")?;
@@ -28,15 +28,12 @@
 #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
 #![cfg_attr(test, deny(warnings))]
 
-mod error;
-
 #[cfg(unix)]
 mod unix;
 
 #[cfg(windows)]
 mod windows;
 
-pub use error::{Error, ErrorKind};
 #[cfg(unix)]
 pub use unix::*;
 #[cfg(windows)]

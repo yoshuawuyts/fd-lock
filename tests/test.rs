@@ -1,7 +1,6 @@
-#![cfg(unix)]
-use fd_lock::{ErrorKind, FdLock};
-
+use fd_lock::FdLock;
 use std::fs::File;
+use std::io::ErrorKind;
 
 use tempfile::tempdir;
 
@@ -13,10 +12,10 @@ fn double_lock() {
     let mut l0 = FdLock::new(File::create(&path).unwrap());
     let mut l1 = FdLock::new(File::open(path).unwrap());
 
-    let g0 = l0.lock().unwrap();
+    let g0 = l0.try_lock().unwrap();
 
     let err = l1.try_lock().unwrap_err();
-    assert!(matches!(err.kind(), ErrorKind::Locked));
+    assert!(matches!(dbg!(err.kind()), ErrorKind::AlreadyExists));
 
     drop(g0);
 }
