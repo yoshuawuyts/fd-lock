@@ -1,5 +1,5 @@
 # fd-lock
-[![crates.io version][1]][2] [![build status][3]][4]
+[![crates.io version][1]][2] 
 [![downloads][5]][6] [![docs.rs docs][7]][8]
 
 Advisory cross-platform file locks using file descriptors. Adapted from

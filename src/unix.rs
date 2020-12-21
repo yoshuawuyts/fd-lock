@@ -1,10 +1,13 @@
-use crate::{Error, ErrorKind};
 use libc::{flock, LOCK_EX, LOCK_NB, LOCK_UN};
-use std::io;
+use std::io::{self, Error, ErrorKind};
 use std::ops;
 use std::os::unix::io::AsRawFd;
 
 /// A guard that unlocks the file descriptor when it goes out of scope.
+///
+/// # Panics
+///
+/// Dropping this type may panic if the lock fails to unlock.
 #[derive(Debug)]
 pub struct FdLockGuard<'fdlock, T: AsRawFd> {
     lock: &'fdlock mut FdLock<T>,
@@ -54,34 +57,40 @@ impl<T: AsRawFd> FdLock<T> {
     /// This function will block the local thread until it is available to acquire the lock. Upon
     /// returning, the thread is the only thread with the lock held. An RAII guard is returned to allow
     /// scoped unlock of the lock. When the guard goes out of scope, the lock will be unlocked.
+    ///
+    /// # Errors
+    ///
+    /// On Unix this may return an error if the operation was interrupted by a signal handler.
     #[inline]
-    pub fn lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
+    pub fn lock(&mut self) -> io::Result<FdLockGuard<'_, T>> {
         let fd = self.t.as_raw_fd();
         match unsafe { flock(fd, LOCK_EX) } {
             0 => Ok(FdLockGuard { lock: self }),
-            _ => Err(ErrorKind::Other.into()),
+            _ => Err(Error::last_os_error()),
         }
     }
 
-    /// Attempts to acquire this lock.
+    /// Attempts to acquire an advisory lock.
     ///
-    /// If the lock could not be acquired at this time, then `Err` is returned. Otherwise, an RAII
-    /// guard is returned. The lock will be unlocked when the guard is dropped.
+    /// Unlike `FdLock::lock` this function will never block, but instead will
+    /// return an error if the lock cannot be acquired.
     ///
-    /// This function does not block.
+    /// # Errors
+    ///
+    /// If the lock is already held and `ErrorKind::WouldBlock` error is
+    /// returned. This may also return an error if the operation was interrupted
+    /// by a signal handler.
     #[inline]
     pub fn try_lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
         let fd = self.t.as_raw_fd();
-        let result = unsafe { flock(fd, LOCK_EX | LOCK_NB) };
-        if result == 0 {
-            return Ok(FdLockGuard { lock: self });
-        }
-
-        match io::Error::last_os_error().kind() {
-            io::ErrorKind::AlreadyExists | io::ErrorKind::WouldBlock => {
-                Err(ErrorKind::Locked.into())
-            }
-            _ => Err(ErrorKind::Other.into()),
+        match unsafe { flock(fd, LOCK_EX | LOCK_NB) } {
+            0 => Ok(FdLockGuard { lock: self }),
+            _ => match Error::last_os_error().kind() {
+                ErrorKind::AlreadyExists | ErrorKind::WouldBlock => {
+                    Err(ErrorKind::WouldBlock.into())
+                }
+                kind => Err(kind.into()),
+            },
         }
     }
 }
