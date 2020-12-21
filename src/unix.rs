@@ -1,5 +1,6 @@
 use crate::{Error, ErrorKind};
-use libc::{flock, EWOULDBLOCK, LOCK_EX, LOCK_NB, LOCK_UN};
+use libc::{flock, LOCK_EX, LOCK_NB, LOCK_UN};
+use std::io;
 use std::ops;
 use std::os::unix::io::AsRawFd;
 
@@ -71,9 +72,15 @@ impl<T: AsRawFd> FdLock<T> {
     #[inline]
     pub fn try_lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
         let fd = self.t.as_raw_fd();
-        match unsafe { flock(fd, LOCK_EX | LOCK_NB) } {
-            0 => Ok(FdLockGuard { lock: self }),
-            EWOULDBLOCK => Err(ErrorKind::Locked.into()),
+        let result = unsafe { flock(fd, LOCK_EX | LOCK_NB) };
+        if result == 0 {
+            return Ok(FdLockGuard { lock: self });
+        }
+
+        match io::Error::last_os_error().kind() {
+            io::ErrorKind::AlreadyExists | io::ErrorKind::WouldBlock => {
+                Err(ErrorKind::Locked.into())
+            }
             _ => Err(ErrorKind::Other.into()),
         }
     }
