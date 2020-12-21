@@ -23,10 +23,14 @@
 //! # Ok(())}
 //! ```
 
-#![forbid(future_incompatible, rust_2018_idioms)]
+#![forbid(future_incompatible)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
-#![cfg_attr(test, deny(warnings))]
+#![warn(
+    missing_docs,
+    missing_doc_code_examples,
+    unreachable_pub,
+    rust_2018_idioms
+)]
 
 #[cfg(unix)]
 mod unix;
