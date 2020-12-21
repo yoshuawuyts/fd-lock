@@ -1,3 +1,4 @@
+#![cfg(unix)]
 use fd_lock::{ErrorKind, FdLock};
 
 use std::fs::File;
