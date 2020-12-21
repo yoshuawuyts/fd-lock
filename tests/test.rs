@@ -15,7 +15,7 @@ fn double_lock() {
     let g0 = l0.try_lock().unwrap();
 
     let err = l1.try_lock().unwrap_err();
-    assert!(matches!(dbg!(err.kind()), ErrorKind::AlreadyExists));
+    assert!(matches!(err.kind(), ErrorKind::WouldBlock));
 
     drop(g0);
 }

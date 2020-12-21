@@ -5,27 +5,11 @@ use std::os::windows::io::AsRawHandle;
 use io::{Error, ErrorKind};
 use winapi::um::fileapi::{LockFile, UnlockFile};
 
-// /// Lock a file descriptor.
-// #[inline]
-// pub fn lock(handle: RawHandle) -> Result<FdLockGuard<'_, T>, Error> {
-//     if unsafe { LockFile(handle.clone(), 0, 0, 1, 0) } {
-//         Ok(FdLockGuard { handle })
-//     } else {
-//         Err(ErrorKind::Locked.into())
-//     }
-// }
-
-// /// Unlock a file descriptor.
-// #[inline]
-// fn unlock(handle: HANDLE) -> Result<(), Error> {
-//     if unsafe { UnlockFile(handle, 0, 0, 1, 0) } {
-//         Ok(())
-//     } else {
-//         Err(ErrorKind::Locked.into())
-//     }
-// }
-
 /// A guard that unlocks the file descriptor when it goes out of scope.
+///
+/// # Panics
+///
+/// Dropping this type may panic if the lock fails to unlock.
 #[derive(Debug)]
 pub struct FdLockGuard<'fdlock, T: AsRawHandle> {
     lock: &'fdlock mut FdLock<T>,
@@ -88,20 +72,21 @@ impl<T: AsRawHandle> FdLock<T> {
 
     /// Attempts to acquire this lock.
     ///
-    /// If the lock could not be acquired at this time, then `Err` is returned. Otherwise, an RAII
-    /// guard is returned. The lock will be unlocked when the guard is dropped.
+    /// Unlike `FdLock::lock` this function will never block, but instead will
+    /// return an error if the lock cannot be acquired.
     ///
-    /// This function does not block.
+    /// # Errors
+    ///
+    /// If the lock is already held and `ErrorKind::WouldBlock` error is returned.
     #[inline]
     pub fn try_lock(&mut self) -> io::Result<FdLockGuard<'_, T>> {
         let handle = self.t.as_raw_handle();
-        if unsafe { LockFile(handle, 0, 0, 1, 0) } == 0 {
-            match Error::last_os_error().kind() {
-                kind @ ErrorKind::WouldBlock => Err(kind.into()),
-                _ => Err(Error::new(ErrorKind::AlreadyExists, "FdLock already held")),
+        match unsafe { LockFile(handle, 0, 0, 1, 0) } {
+            1 => Ok(FdLockGuard { lock: self }),
+            _ => {
+                let err = Error::last_os_error();
+                Err(Error::new(ErrorKind::WouldBlock, format!("{}", err)))
             }
-        } else {
-            Ok(FdLockGuard { lock: self })
         }
     }
 }
