@@ -1,4 +1,4 @@
-use fd_lock::FdLock;
+use fd_lock::FileLock;
 use std::fs::File;
 use std::io::ErrorKind;
 
@@ -9,8 +9,8 @@ fn double_read_lock() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("lockfile");
 
-    let l0 = FdLock::new(File::create(&path).unwrap());
-    let l1 = FdLock::new(File::open(path).unwrap());
+    let l0 = FileLock::new(File::create(&path).unwrap());
+    let l1 = FileLock::new(File::open(path).unwrap());
 
     let _g0 = l0.try_read().unwrap();
     let _g1 = l1.try_read().unwrap();
@@ -21,8 +21,8 @@ fn double_write_lock() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("lockfile");
 
-    let mut l0 = FdLock::new(File::create(&path).unwrap());
-    let mut l1 = FdLock::new(File::open(path).unwrap());
+    let mut l0 = FileLock::new(File::create(&path).unwrap());
+    let mut l1 = FileLock::new(File::open(path).unwrap());
 
     let g0 = l0.try_write().unwrap();
 

@@ -9,11 +9,11 @@ use std::os::unix::io::AsRawFd;
 ///
 /// Dropping this type may panic if the lock fails to unlock.
 #[derive(Debug)]
-pub struct FdLockGuard<'fdlock, T: AsRawFd> {
-    lock: &'fdlock mut FdLock<T>,
+pub struct FileLockGuard<'FileLock, T: AsRawFd> {
+    lock: &'FileLock mut FileLock<T>,
 }
 
-impl<T: AsRawFd> ops::Deref for FdLockGuard<'_, T> {
+impl<T: AsRawFd> ops::Deref for FileLockGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -22,14 +22,14 @@ impl<T: AsRawFd> ops::Deref for FdLockGuard<'_, T> {
     }
 }
 
-impl<T: AsRawFd> ops::DerefMut for FdLockGuard<'_, T> {
+impl<T: AsRawFd> ops::DerefMut for FileLockGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.lock.t
     }
 }
 
-impl<T: AsRawFd> Drop for FdLockGuard<'_, T> {
+impl<T: AsRawFd> Drop for FileLockGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let fd = self.lock.t.as_raw_fd();
@@ -41,15 +41,15 @@ impl<T: AsRawFd> Drop for FdLockGuard<'_, T> {
 
 /// A file descriptor lock.
 #[derive(Debug)]
-pub struct FdLock<T: AsRawFd> {
+pub struct FileLock<T: AsRawFd> {
     t: T,
 }
 
-impl<T: AsRawFd> FdLock<T> {
+impl<T: AsRawFd> FileLock<T> {
     /// Create a new instance.
     #[inline]
     pub fn new(t: T) -> Self {
-        FdLock { t }
+        FileLock { t }
     }
 
     /// Acquires a new lock, blocking the current thread until it's able to do so.
@@ -62,17 +62,17 @@ impl<T: AsRawFd> FdLock<T> {
     ///
     /// On Unix this may return an error if the operation was interrupted by a signal handler.
     #[inline]
-    pub fn lock(&mut self) -> io::Result<FdLockGuard<'_, T>> {
+    pub fn lock(&mut self) -> io::Result<FileLockGuard<'_, T>> {
         let fd = self.t.as_raw_fd();
         match unsafe { flock(fd, LOCK_EX) } {
-            0 => Ok(FdLockGuard { lock: self }),
+            0 => Ok(FileLockGuard { lock: self }),
             _ => Err(Error::last_os_error()),
         }
     }
 
     /// Attempts to acquire an advisory lock.
     ///
-    /// Unlike `FdLock::lock` this function will never block, but instead will
+    /// Unlike `FileLock::lock` this function will never block, but instead will
     /// return an error if the lock cannot be acquired.
     ///
     /// # Errors
@@ -81,10 +81,10 @@ impl<T: AsRawFd> FdLock<T> {
     /// returned. This may also return an error if the operation was interrupted
     /// by a signal handler.
     #[inline]
-    pub fn try_lock(&mut self) -> Result<FdLockGuard<'_, T>, Error> {
+    pub fn try_lock(&mut self) -> Result<FileLockGuard<'_, T>, Error> {
         let fd = self.t.as_raw_fd();
         match unsafe { flock(fd, LOCK_EX | LOCK_NB) } {
-            0 => Ok(FdLockGuard { lock: self }),
+            0 => Ok(FileLockGuard { lock: self }),
             _ => match Error::last_os_error().kind() {
                 ErrorKind::AlreadyExists | ErrorKind::WouldBlock => {
                     Err(ErrorKind::WouldBlock.into())

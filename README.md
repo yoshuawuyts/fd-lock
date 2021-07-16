@@ -18,14 +18,14 @@ but solely to coordinate file access.
 ## Examples
 __Basic usage__
 ```rust
-use fd_lock::FdLock;
+use fd_lock::FileLock;
 use tempfile::tempfile;
 use std::io::prelude::*;
 use std::fs::File;
 
 fn main() -> Result<(), failure::Error> {
     // Lock a file and write to it.
-    let mut f = FdLock::new(tempfile()?);
+    let mut f = FileLock::new(tempfile()?);
     f.try_write()?.write_all(b"chashu cat")?;
 
     // Locks can also be held for extended durations.

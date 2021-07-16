@@ -8,8 +8,8 @@ mod read_guard;
 mod utils;
 mod write_guard;
 
-pub use read_guard::FdLockReadGuard;
-pub use write_guard::FdLockWriteGuard;
+pub use read_guard::FileLockReadGuard;
+pub use write_guard::FileLockWriteGuard;
 
 use utils::{syscall, Overlapped};
 
@@ -20,15 +20,15 @@ use utils::{syscall, Overlapped};
 /// underlying data (exclusive access) and the read portion of this lock typically
 /// allows for read-only access (shared access).
 #[derive(Debug)]
-pub struct FdLock<T: AsRawHandle> {
+pub struct FileLock<T: AsRawHandle> {
     inner: T,
 }
 
-impl<T: AsRawHandle> FdLock<T> {
+impl<T: AsRawHandle> FileLock<T> {
     /// Create a new instance.
     #[inline]
     pub fn new(inner: T) -> Self {
-        FdLock { inner }
+        FileLock { inner }
     }
 
     /// Locks this lock with shared read access, blocking the current thread
@@ -48,13 +48,13 @@ impl<T: AsRawHandle> FdLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn read(&self) -> io::Result<FdLockReadGuard<'_, T>> {
+    pub fn read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = 0;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FdLockReadGuard { lock: self })
+        Ok(FileLockReadGuard { lock: self })
     }
 
     /// Attempts to acquire this lock with shared read access.
@@ -74,14 +74,14 @@ impl<T: AsRawHandle> FdLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn try_read(&self) -> io::Result<FdLockReadGuard<'_, T>> {
+    pub fn try_read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY;
 
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
             .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FdLockReadGuard { lock: self })
+        Ok(FileLockReadGuard { lock: self })
     }
 
     /// Locks this lock with exclusive write access, blocking the current thread
@@ -98,13 +98,13 @@ impl<T: AsRawHandle> FdLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn write(&mut self) -> io::Result<FdLockWriteGuard<'_, T>> {
+    pub fn write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_EXCLUSIVE_LOCK;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FdLockWriteGuard { lock: self })
+        Ok(FileLockWriteGuard { lock: self })
     }
 
     /// Attempts to lock this lock with exclusive write access.
@@ -119,17 +119,17 @@ impl<T: AsRawHandle> FdLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn try_write(&mut self) -> io::Result<FdLockWriteGuard<'_, T>> {
+    pub fn try_write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY | LOCKFILE_EXCLUSIVE_LOCK;
 
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
             .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FdLockWriteGuard { lock: self })
+        Ok(FileLockWriteGuard { lock: self })
     }
 
-    /// Consumes this `FdLock`, returning the underlying data.
+    /// Consumes this `FileLock`, returning the underlying data.
     pub fn into_inner(self) -> T
     where
         T: Sized,

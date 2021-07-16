@@ -3,27 +3,27 @@ use winapi::um::fileapi::UnlockFile;
 use std::ops;
 use std::os::windows::prelude::*;
 
-use crate::FdLock;
+use crate::FileLock;
 
 /// RAII structure used to release the shared read access of a lock when
 /// dropped.
 ///
 /// This structure is created by the [`read`] and [`try_read`] methods on
-/// [`FdLock`].
+/// [`FileLock`].
 ///
-/// [`read`]: FdLock::read
-/// [`try_read`]: FdLock::try_read
+/// [`read`]: FileLock::read
+/// [`try_read`]: FileLock::try_read
 ///
 /// # Panics
 ///
 /// Dropping this type may panic if the lock fails to unlock.
-#[must_use = "if unused the FdLock will immediately unlock"]
+#[must_use = "if unused the FileLock will immediately unlock"]
 #[derive(Debug)]
-pub struct FdLockReadGuard<'fdlock, T: AsRawHandle> {
-    pub(crate) lock: &'fdlock FdLock<T>,
+pub struct FileLockReadGuard<'file_lock, T: AsRawHandle> {
+    pub(crate) lock: &'file_lock FileLock<T>,
 }
 
-impl<T: AsRawHandle> ops::Deref for FdLockReadGuard<'_, T> {
+impl<T: AsRawHandle> ops::Deref for FileLockReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -32,7 +32,7 @@ impl<T: AsRawHandle> ops::Deref for FdLockReadGuard<'_, T> {
     }
 }
 
-impl<T: AsRawHandle> Drop for FdLockReadGuard<'_, T> {
+impl<T: AsRawHandle> Drop for FileLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let handle = self.lock.inner.as_raw_handle();
