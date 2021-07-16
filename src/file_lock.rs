@@ -1,17 +1,7 @@
-use std::io::{self, Error, ErrorKind};
-use std::os::windows::io::AsRawHandle;
-
-use winapi::um::fileapi::LockFileEx;
-use winapi::um::minwinbase::{LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY};
-
-mod read_guard;
-mod utils;
-mod write_guard;
-
-pub use read_guard::FileLockReadGuard;
-pub use write_guard::FileLockWriteGuard;
-
-use utils::{syscall, Overlapped};
+use crate::read_guard::FileLockReadGuard;
+use crate::sys;
+use crate::write_guard::FileLockWriteGuard;
+use std::io;
 
 /// Advisory reader-writer lock for files.
 ///
@@ -20,15 +10,17 @@ use utils::{syscall, Overlapped};
 /// underlying data (exclusive access) and the read portion of this lock typically
 /// allows for read-only access (shared access).
 #[derive(Debug)]
-pub struct FileLock<T: AsRawHandle> {
-    inner: T,
+pub struct FileLock<T: sys::AsRaw> {
+    lock: sys::FileLock<T>,
 }
 
-impl<T: AsRawHandle> FileLock<T> {
+impl<T: sys::AsRaw> FileLock<T> {
     /// Create a new instance.
     #[inline]
     pub fn new(inner: T) -> Self {
-        FileLock { inner }
+        Self {
+            lock: sys::FileLock::new(inner),
+        }
     }
 
     /// Locks this lock with shared read access, blocking the current thread
@@ -49,12 +41,8 @@ impl<T: AsRawHandle> FileLock<T> {
     /// interrupted by a signal handler.
     #[inline]
     pub fn read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
-        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle();
-        let overlapped = Overlapped::zero();
-        let flags = 0;
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FileLockReadGuard { lock: self })
+        let guard = self.lock.read()?;
+        Ok(FileLockReadGuard::new(guard))
     }
 
     /// Attempts to acquire this lock with shared read access.
@@ -75,13 +63,8 @@ impl<T: AsRawHandle> FileLock<T> {
     /// interrupted by a signal handler.
     #[inline]
     pub fn try_read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
-        let handle = self.inner.as_raw_handle();
-        let overlapped = Overlapped::zero();
-        let flags = LOCKFILE_FAIL_IMMEDIATELY;
-
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
-            .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FileLockReadGuard { lock: self })
+        let guard = self.lock.try_read()?;
+        Ok(FileLockReadGuard::new(guard))
     }
 
     /// Locks this lock with exclusive write access, blocking the current thread
@@ -99,12 +82,8 @@ impl<T: AsRawHandle> FileLock<T> {
     /// interrupted by a signal handler.
     #[inline]
     pub fn write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
-        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle();
-        let overlapped = Overlapped::zero();
-        let flags = LOCKFILE_EXCLUSIVE_LOCK;
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FileLockWriteGuard { lock: self })
+        let guard = self.lock.write()?;
+        Ok(FileLockWriteGuard::new(guard))
     }
 
     /// Attempts to lock this lock with exclusive write access.
@@ -120,13 +99,8 @@ impl<T: AsRawHandle> FileLock<T> {
     /// interrupted by a signal handler.
     #[inline]
     pub fn try_write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
-        let handle = self.inner.as_raw_handle();
-        let overlapped = Overlapped::zero();
-        let flags = LOCKFILE_FAIL_IMMEDIATELY | LOCKFILE_EXCLUSIVE_LOCK;
-
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
-            .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FileLockWriteGuard { lock: self })
+        let guard = self.lock.try_write()?;
+        Ok(FileLockWriteGuard::new(guard))
     }
 
     /// Consumes this `FileLock`, returning the underlying data.
@@ -134,6 +108,6 @@ impl<T: AsRawHandle> FileLock<T> {
     where
         T: Sized,
     {
-        self.inner
+        self.lock.into_inner()
     }
 }

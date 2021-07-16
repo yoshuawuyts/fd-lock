@@ -32,13 +32,12 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, missing_doc_code_examples)]
 
-#[cfg(unix)]
-mod unix;
+mod file_lock;
+mod read_guard;
+mod write_guard;
 
-#[cfg(windows)]
-mod windows;
+pub(crate) mod sys;
 
-#[cfg(unix)]
-pub use unix::*;
-#[cfg(windows)]
-pub use windows::*;
+pub use file_lock::FileLock;
+pub use read_guard::FileLockReadGuard;
+pub use write_guard::FileLockWriteGuard;

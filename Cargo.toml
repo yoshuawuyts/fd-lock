@@ -13,6 +13,7 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.58"
+cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = "0.3.7"
