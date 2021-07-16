@@ -26,10 +26,10 @@ use std::fs::File;
 fn main() -> Result<(), failure::Error> {
     // Lock a file and write to it.
     let mut f = FdLock::new(tempfile()?);
-    f.try_lock()?.write_all(b"chashu cat")?;
+    f.try_write()?.write_all(b"chashu cat")?;
 
     // Locks can also be held for extended durations.
-    let mut f = f.try_lock()?;
+    let mut f = f.try_write()?;
     f.write_all(b"nori cat")?;
     f.write_all(b"bird!")?;
     Ok(())

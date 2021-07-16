@@ -1,10 +1,15 @@
-//! Advisory cross-platform file locks using file descriptors.
+//! Advisory reader-writer locks for files.
 //!
-//! Note that advisory lock compliance is opt-in, and can freely be ignored by other parties. This
-//! means this crate __should not be relied on for security__, but solely used to coordinate file
-//! access.
+//! # Notes on Advisory Locks
 //!
-//! ## Example
+//! "advisory locks" are locks which programs must opt-in to adhere to. This
+//! means that they can be used to coordinate file access, but not prevent
+//! access. Use this to coordinate file access between multiple instances of the
+//! same program. But do not use this to prevent actors from accessing or
+//! modifying files.
+//!
+//! # Example
+//!
 //! ```rust
 //! use fd_lock::FdLock;
 //! # use tempfile::tempfile;
@@ -14,10 +19,10 @@
 //! # fn main() -> io::Result<()> {
 //! // Lock a file and write to it.
 //! let mut f = FdLock::new(tempfile()?);
-//! f.try_lock()?.write_all(b"chashu cat")?;
+//! f.write()?.write_all(b"chashu cat")?;
 //!
-//! // Locks can also be held for extended durations.
-//! let mut f = f.try_lock()?;
+//! // A lock can also be held across multiple operations.
+//! let mut f = f.write()?;
 //! f.write_all(b"nori cat")?;
 //! f.write_all(b"bird!")?;
 //! # Ok(())}
@@ -25,12 +30,7 @@
 
 #![forbid(future_incompatible)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(
-    missing_docs,
-    missing_doc_code_examples,
-    unreachable_pub,
-    rust_2018_idioms
-)]
+#![warn(missing_docs, missing_doc_code_examples)]
 
 #[cfg(unix)]
 mod unix;
