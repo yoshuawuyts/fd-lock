@@ -43,6 +43,7 @@ impl<T: sys::AsRaw> ops::DerefMut for FileLockWriteGuard<'_, T> {
     }
 }
 
+/// Release the lock.
 impl<T: sys::AsRaw> Drop for FileLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {}

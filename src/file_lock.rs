@@ -104,6 +104,7 @@ impl<T: sys::AsRaw> FileLock<T> {
     }
 
     /// Consumes this `FileLock`, returning the underlying data.
+    #[inline]
     pub fn into_inner(self) -> T
     where
         T: Sized,

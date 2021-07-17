@@ -4,7 +4,7 @@ cfg_if! {
     if #[cfg(unix)] {
         mod unix;
         pub use unix::*;
-        pub(crate) use std::unix::AsRawHandle as AsRaw;
+        pub(crate) use std::os::unix::prelude::AsRawFd as AsRaw;
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::*;

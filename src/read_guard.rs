@@ -36,6 +36,7 @@ impl<T: sys::AsRaw> ops::Deref for FileLockReadGuard<'_, T> {
     }
 }
 
+/// Release the lock.
 impl<T: sys::AsRaw> Drop for FileLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {}

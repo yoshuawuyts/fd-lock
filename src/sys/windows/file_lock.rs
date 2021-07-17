@@ -60,6 +60,7 @@ impl<T: AsRawHandle> FileLock<T> {
         Ok(FileLockWriteGuard { lock: self })
     }
 
+    #[inline]
     pub fn into_inner(self) -> T
     where
         T: Sized,
