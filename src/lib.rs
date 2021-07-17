@@ -11,14 +11,14 @@
 //! # Example
 //!
 //! ```rust
+//! # use std::io;
+//! use std::fs::File;
+//! use std::io::prelude::*;
 //! use fd_lock::RwLock;
-//! # use tempfile::tempfile;
-//! # use std::io::{self, prelude::*};
-//! # use std::fs::File;
 //!
 //! # fn main() -> io::Result<()> {
 //! // Lock a file and write to it.
-//! let mut f = RwLock::new(tempfile()?);
+//! let mut f = RwLock::new(File::open("foo.txt")?);
 //! f.write()?.write_all(b"chashu cat")?;
 //!
 //! // A lock can also be held across multiple operations.
