@@ -16,6 +16,18 @@ pub struct RwLock<T: sys::AsRaw> {
 
 impl<T: sys::AsRaw> RwLock<T> {
     /// Create a new instance.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use fd_lock::RwLock;
+    /// use std::fs::File;
+    ///
+    /// fn main() -> std::io::Result<()> {
+    ///     let mut f = RwLock::new(File::open("foo.txt")?);
+    ///     Ok(())
+    /// }
+    /// ```
     #[inline]
     pub fn new(inner: T) -> Self {
         Self {
