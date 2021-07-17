@@ -5,59 +5,59 @@ use winapi::um::fileapi::LockFileEx;
 use winapi::um::minwinbase::{LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY};
 
 use super::utils::{syscall, Overlapped};
-use super::{FileLockReadGuard, FileLockWriteGuard};
+use super::{RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
-pub struct FileLock<T: AsRawHandle> {
+pub struct RwLock<T: AsRawHandle> {
     pub(crate) inner: T,
 }
 
-impl<T: AsRawHandle> FileLock<T> {
+impl<T: AsRawHandle> RwLock<T> {
     #[inline]
     pub fn new(inner: T) -> Self {
-        FileLock { inner }
+        RwLock { inner }
     }
 
     #[inline]
-    pub fn read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
+    pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = 0;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FileLockReadGuard { lock: self })
+        Ok(RwLockReadGuard { lock: self })
     }
 
     #[inline]
-    pub fn try_read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
+    pub fn try_read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY;
 
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
             .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FileLockReadGuard { lock: self })
+        Ok(RwLockReadGuard { lock: self })
     }
 
     #[inline]
-    pub fn write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
+    pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_EXCLUSIVE_LOCK;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
-        Ok(FileLockWriteGuard { lock: self })
+        Ok(RwLockWriteGuard { lock: self })
     }
 
     #[inline]
-    pub fn try_write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
+    pub fn try_write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         let handle = self.inner.as_raw_handle();
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY | LOCKFILE_EXCLUSIVE_LOCK;
 
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
             .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
-        Ok(FileLockWriteGuard { lock: self })
+        Ok(RwLockWriteGuard { lock: self })
     }
 
     #[inline]

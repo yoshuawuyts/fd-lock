@@ -1,6 +1,6 @@
-use crate::read_guard::FileLockReadGuard;
+use crate::read_guard::RwLockReadGuard;
 use crate::sys;
-use crate::write_guard::FileLockWriteGuard;
+use crate::write_guard::RwLockWriteGuard;
 use std::io;
 
 /// Advisory reader-writer lock for files.
@@ -10,16 +10,16 @@ use std::io;
 /// underlying data (exclusive access) and the read portion of this lock typically
 /// allows for read-only access (shared access).
 #[derive(Debug)]
-pub struct FileLock<T: sys::AsRaw> {
-    lock: sys::FileLock<T>,
+pub struct RwLock<T: sys::AsRaw> {
+    lock: sys::RwLock<T>,
 }
 
-impl<T: sys::AsRaw> FileLock<T> {
+impl<T: sys::AsRaw> RwLock<T> {
     /// Create a new instance.
     #[inline]
     pub fn new(inner: T) -> Self {
         Self {
-            lock: sys::FileLock::new(inner),
+            lock: sys::RwLock::new(inner),
         }
     }
 
@@ -40,9 +40,9 @@ impl<T: sys::AsRaw> FileLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
+    pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         let guard = self.lock.read()?;
-        Ok(FileLockReadGuard::new(guard))
+        Ok(RwLockReadGuard::new(guard))
     }
 
     /// Attempts to acquire this lock with shared read access.
@@ -62,9 +62,9 @@ impl<T: sys::AsRaw> FileLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn try_read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
+    pub fn try_read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         let guard = self.lock.try_read()?;
-        Ok(FileLockReadGuard::new(guard))
+        Ok(RwLockReadGuard::new(guard))
     }
 
     /// Locks this lock with exclusive write access, blocking the current thread
@@ -81,9 +81,9 @@ impl<T: sys::AsRaw> FileLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
+    pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         let guard = self.lock.write()?;
-        Ok(FileLockWriteGuard::new(guard))
+        Ok(RwLockWriteGuard::new(guard))
     }
 
     /// Attempts to lock this lock with exclusive write access.
@@ -98,12 +98,12 @@ impl<T: sys::AsRaw> FileLock<T> {
     /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
     /// interrupted by a signal handler.
     #[inline]
-    pub fn try_write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
+    pub fn try_write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         let guard = self.lock.try_write()?;
-        Ok(FileLockWriteGuard::new(guard))
+        Ok(RwLockWriteGuard::new(guard))
     }
 
-    /// Consumes this `FileLock`, returning the underlying data.
+    /// Consumes this `RwLock`, returning the underlying data.
     #[inline]
     pub fn into_inner(self) -> T
     where

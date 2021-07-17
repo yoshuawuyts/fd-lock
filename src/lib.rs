@@ -11,14 +11,14 @@
 //! # Example
 //!
 //! ```rust
-//! use fd_lock::FileLock;
+//! use fd_lock::RwLock;
 //! # use tempfile::tempfile;
 //! # use std::io::{self, prelude::*};
 //! # use std::fs::File;
 //!
 //! # fn main() -> io::Result<()> {
 //! // Lock a file and write to it.
-//! let mut f = FileLock::new(tempfile()?);
+//! let mut f = RwLock::new(tempfile()?);
 //! f.write()?.write_all(b"chashu cat")?;
 //!
 //! // A lock can also be held across multiple operations.
@@ -38,6 +38,6 @@ mod write_guard;
 
 pub(crate) mod sys;
 
-pub use file_lock::FileLock;
-pub use read_guard::FileLockReadGuard;
-pub use write_guard::FileLockWriteGuard;
+pub use file_lock::RwLock;
+pub use read_guard::RwLockReadGuard;
+pub use write_guard::RwLockWriteGuard;

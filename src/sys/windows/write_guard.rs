@@ -4,14 +4,14 @@ use std::ops;
 use std::os::windows::prelude::*;
 
 use super::utils::syscall;
-use super::FileLock;
+use super::RwLock;
 
 #[derive(Debug)]
-pub struct FileLockWriteGuard<'lock, T: AsRawHandle> {
-    pub(crate) lock: &'lock mut FileLock<T>,
+pub struct RwLockWriteGuard<'lock, T: AsRawHandle> {
+    pub(crate) lock: &'lock mut RwLock<T>,
 }
 
-impl<T: AsRawHandle> ops::Deref for FileLockWriteGuard<'_, T> {
+impl<T: AsRawHandle> ops::Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -20,14 +20,14 @@ impl<T: AsRawHandle> ops::Deref for FileLockWriteGuard<'_, T> {
     }
 }
 
-impl<T: AsRawHandle> ops::DerefMut for FileLockWriteGuard<'_, T> {
+impl<T: AsRawHandle> ops::DerefMut for RwLockWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.lock.inner
     }
 }
 
-impl<T: AsRawHandle> Drop for FileLockWriteGuard<'_, T> {
+impl<T: AsRawHandle> Drop for RwLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let handle = self.lock.inner.as_raw_handle();

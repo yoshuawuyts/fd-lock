@@ -3,20 +3,20 @@ use std::ops;
 use std::os::unix::io::AsRawFd;
 
 use super::utils::syscall;
-use super::FileLock;
+use super::RwLock;
 
 #[derive(Debug)]
-pub struct FileLockReadGuard<'lock, T: AsRawFd> {
-    lock: &'lock FileLock<T>,
+pub struct RwLockReadGuard<'lock, T: AsRawFd> {
+    lock: &'lock RwLock<T>,
 }
 
-impl<'lock, T: AsRawFd> FileLockReadGuard<'lock, T> {
-    pub(crate) fn new(lock: &'lock FileLock<T>) -> Self {
+impl<'lock, T: AsRawFd> RwLockReadGuard<'lock, T> {
+    pub(crate) fn new(lock: &'lock RwLock<T>) -> Self {
         Self { lock }
     }
 }
 
-impl<T: AsRawFd> ops::Deref for FileLockReadGuard<'_, T> {
+impl<T: AsRawFd> ops::Deref for RwLockReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -25,7 +25,7 @@ impl<T: AsRawFd> ops::Deref for FileLockReadGuard<'_, T> {
     }
 }
 
-impl<T: AsRawFd> Drop for FileLockReadGuard<'_, T> {
+impl<T: AsRawFd> Drop for RwLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let fd = self.lock.inner.as_raw_fd();

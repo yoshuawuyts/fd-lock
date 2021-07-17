@@ -3,51 +3,51 @@ use std::io::{self, Error, ErrorKind};
 use std::os::unix::io::AsRawFd;
 
 use super::utils::syscall;
-use super::{FileLockReadGuard, FileLockWriteGuard};
+use super::{RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
-pub struct FileLock<T: AsRawFd> {
+pub struct RwLock<T: AsRawFd> {
     pub(crate) inner: T,
 }
 
-impl<T: AsRawFd> FileLock<T> {
+impl<T: AsRawFd> RwLock<T> {
     #[inline]
     pub fn new(inner: T) -> Self {
-        FileLock { inner }
+        RwLock { inner }
     }
 
     #[inline]
-    pub fn write(&mut self) -> io::Result<FileLockWriteGuard<'_, T>> {
+    pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         let fd = self.inner.as_raw_fd();
         syscall(unsafe { flock(fd, LOCK_EX) })?;
-        Ok(FileLockWriteGuard::new(self))
+        Ok(RwLockWriteGuard::new(self))
     }
 
     #[inline]
-    pub fn try_write(&mut self) -> Result<FileLockWriteGuard<'_, T>, Error> {
+    pub fn try_write(&mut self) -> Result<RwLockWriteGuard<'_, T>, Error> {
         let fd = self.inner.as_raw_fd();
         syscall(unsafe { flock(fd, LOCK_EX | LOCK_NB) }).map_err(|err| match err.kind() {
             ErrorKind::AlreadyExists => ErrorKind::WouldBlock.into(),
             _ => err,
         })?;
-        Ok(FileLockWriteGuard::new(self))
+        Ok(RwLockWriteGuard::new(self))
     }
 
     #[inline]
-    pub fn read(&self) -> io::Result<FileLockReadGuard<'_, T>> {
+    pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         let fd = self.inner.as_raw_fd();
         syscall(unsafe { flock(fd, LOCK_SH) })?;
-        Ok(FileLockReadGuard::new(self))
+        Ok(RwLockReadGuard::new(self))
     }
 
     #[inline]
-    pub fn try_read(&self) -> Result<FileLockReadGuard<'_, T>, Error> {
+    pub fn try_read(&self) -> Result<RwLockReadGuard<'_, T>, Error> {
         let fd = self.inner.as_raw_fd();
         syscall(unsafe { flock(fd, LOCK_SH | LOCK_NB) }).map_err(|err| match err.kind() {
             ErrorKind::AlreadyExists => ErrorKind::WouldBlock.into(),
             _ => err,
         })?;
-        Ok(FileLockReadGuard::new(self))
+        Ok(RwLockReadGuard::new(self))
     }
 
     #[inline]

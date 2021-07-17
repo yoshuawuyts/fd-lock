@@ -6,28 +6,28 @@ use crate::sys;
 /// dropped.
 ///
 /// This structure is created by the [`write`] and [`try_write`] methods
-/// on [`FileLock`].
+/// on [`RwLock`].
 ///
-/// [`write`]: crate::FileLock::write
-/// [`try_write`]: crate::FileLock::try_write
-/// [`FileLock`]: crate::FileLock
+/// [`write`]: crate::RwLock::write
+/// [`try_write`]: crate::RwLock::try_write
+/// [`RwLock`]: crate::RwLock
 ///
 /// # Panics
 ///
 /// Dropping this type may panic if the lock fails to unlock.
-#[must_use = "if unused the FileLock will immediately unlock"]
+#[must_use = "if unused the RwLock will immediately unlock"]
 #[derive(Debug)]
-pub struct FileLockWriteGuard<'lock, T: sys::AsRaw> {
-    guard: sys::FileLockWriteGuard<'lock, T>,
+pub struct RwLockWriteGuard<'lock, T: sys::AsRaw> {
+    guard: sys::RwLockWriteGuard<'lock, T>,
 }
 
-impl<'lock, T: sys::AsRaw> FileLockWriteGuard<'lock, T> {
-    pub(crate) fn new(guard: sys::FileLockWriteGuard<'lock, T>) -> Self {
+impl<'lock, T: sys::AsRaw> RwLockWriteGuard<'lock, T> {
+    pub(crate) fn new(guard: sys::RwLockWriteGuard<'lock, T>) -> Self {
         Self { guard }
     }
 }
 
-impl<T: sys::AsRaw> ops::Deref for FileLockWriteGuard<'_, T> {
+impl<T: sys::AsRaw> ops::Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -36,7 +36,7 @@ impl<T: sys::AsRaw> ops::Deref for FileLockWriteGuard<'_, T> {
     }
 }
 
-impl<T: sys::AsRaw> ops::DerefMut for FileLockWriteGuard<'_, T> {
+impl<T: sys::AsRaw> ops::DerefMut for RwLockWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.guard.deref_mut()
@@ -44,7 +44,7 @@ impl<T: sys::AsRaw> ops::DerefMut for FileLockWriteGuard<'_, T> {
 }
 
 /// Release the lock.
-impl<T: sys::AsRaw> Drop for FileLockWriteGuard<'_, T> {
+impl<T: sys::AsRaw> Drop for RwLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {}
 }

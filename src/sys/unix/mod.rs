@@ -4,6 +4,6 @@ mod write_guard;
 
 pub(crate) mod utils;
 
-pub use file_lock::FileLock;
-pub use read_guard::FileLockReadGuard;
-pub use write_guard::FileLockWriteGuard;
+pub use file_lock::RwLock;
+pub use read_guard::RwLockReadGuard;
+pub use write_guard::RwLockWriteGuard;
