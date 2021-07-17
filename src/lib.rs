@@ -1,44 +1,43 @@
-//! Advisory cross-platform file locks using file descriptors.
+//! Advisory reader-writer locks for files.
 //!
-//! Note that advisory lock compliance is opt-in, and can freely be ignored by other parties. This
-//! means this crate __should not be relied on for security__, but solely used to coordinate file
-//! access.
+//! # Notes on Advisory Locks
 //!
-//! ## Example
-//! ```rust
-//! use fd_lock::FdLock;
-//! # use tempfile::tempfile;
-//! # use std::io::{self, prelude::*};
-//! # use std::fs::File;
+//! "advisory locks" are locks which programs must opt-in to adhere to. This
+//! means that they can be used to coordinate file access, but not prevent
+//! access. Use this to coordinate file access between multiple instances of the
+//! same program. But do not use this to prevent actors from accessing or
+//! modifying files.
+//!
+//! # Example
+//!
+//! ```no_run
+//! # use std::io;
+//! use std::io::prelude::*;
+//! use std::fs::File;
+//! use fd_lock::RwLock;
 //!
 //! # fn main() -> io::Result<()> {
 //! // Lock a file and write to it.
-//! let mut f = FdLock::new(tempfile()?);
-//! f.try_lock()?.write_all(b"chashu cat")?;
+//! let mut f = RwLock::new(File::open("foo.txt")?);
+//! write!(f.write()?, "chashu cat")?;
 //!
-//! // Locks can also be held for extended durations.
-//! let mut f = f.try_lock()?;
-//! f.write_all(b"nori cat")?;
-//! f.write_all(b"bird!")?;
-//! # Ok(())}
+//! // A lock can also be held across multiple operations.
+//! let mut f = f.write()?;
+//! write!(f, "nori cat")?;
+//! write!(f, "bird!")?;
+//! # Ok(()) }
 //! ```
 
 #![forbid(future_incompatible)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(
-    missing_docs,
-    missing_doc_code_examples,
-    unreachable_pub,
-    rust_2018_idioms
-)]
+#![warn(missing_docs, missing_doc_code_examples)]
 
-#[cfg(unix)]
-mod unix;
+mod read_guard;
+mod rw_lock;
+mod write_guard;
 
-#[cfg(windows)]
-mod windows;
+pub(crate) mod sys;
 
-#[cfg(unix)]
-pub use unix::*;
-#[cfg(windows)]
-pub use windows::*;
+pub use read_guard::RwLockReadGuard;
+pub use rw_lock::RwLock;
+pub use write_guard::RwLockWriteGuard;
