@@ -6,12 +6,12 @@ use super::utils::syscall;
 use super::FileLock;
 
 #[derive(Debug)]
-pub struct FileLockWriteGuard<'file_lock, T: AsRawFd> {
-    lock: &'file_lock mut FileLock<T>,
+pub struct FileLockWriteGuard<'lock, T: AsRawFd> {
+    lock: &'lock mut FileLock<T>,
 }
 
-impl<'file_lock, T: AsRawFd> FileLockWriteGuard<'file_lock, T> {
-    pub(crate) fn new(lock: &'file_lock mut FileLock<T>) -> Self {
+impl<'lock, T: AsRawFd> FileLockWriteGuard<'lock, T> {
+    pub(crate) fn new(lock: &'lock mut FileLock<T>) -> Self {
         Self { lock }
     }
 }

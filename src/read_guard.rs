@@ -17,12 +17,12 @@ use crate::sys;
 /// Dropping this type may panic if the lock fails to unlock.
 #[must_use = "if unused the FileLock will immediately unlock"]
 #[derive(Debug)]
-pub struct FileLockReadGuard<'file_lock, T: sys::AsRaw> {
-    guard: sys::FileLockReadGuard<'file_lock, T>,
+pub struct FileLockReadGuard<'lock, T: sys::AsRaw> {
+    guard: sys::FileLockReadGuard<'lock, T>,
 }
 
-impl<'file_lock, T: sys::AsRaw> FileLockReadGuard<'file_lock, T> {
-    pub(crate) fn new(guard: sys::FileLockReadGuard<'file_lock, T>) -> Self {
+impl<'lock, T: sys::AsRaw> FileLockReadGuard<'lock, T> {
+    pub(crate) fn new(guard: sys::FileLockReadGuard<'lock, T>) -> Self {
         Self { guard }
     }
 }

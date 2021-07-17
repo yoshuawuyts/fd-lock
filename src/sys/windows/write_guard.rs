@@ -7,8 +7,8 @@ use super::utils::syscall;
 use super::FileLock;
 
 #[derive(Debug)]
-pub struct FileLockWriteGuard<'file_lock, T: AsRawHandle> {
-    pub(crate) lock: &'file_lock mut FileLock<T>,
+pub struct FileLockWriteGuard<'lock, T: AsRawHandle> {
+    pub(crate) lock: &'lock mut FileLock<T>,
 }
 
 impl<T: AsRawHandle> ops::Deref for FileLockWriteGuard<'_, T> {
