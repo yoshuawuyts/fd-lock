@@ -18,22 +18,18 @@ but solely to coordinate file access.
 ## Examples
 __Basic usage__
 ```rust
-use fd_lock::RwLock;
-use tempfile::tempfile;
 use std::io::prelude::*;
 use std::fs::File;
+use fd_lock::RwLock;
 
-fn main() -> Result<(), failure::Error> {
-    // Lock a file and write to it.
-    let mut f = RwLock::new(tempfile()?);
-    f.write()?.write_all(b"chashu cat")?;
+// Lock a file and write to it.
+let mut f = RwLock::new(File::open("foo.txt")?);
+write!(f.write()?, "chashu cat")?;
 
-    // A lock can also be held across multiple operations.
-    let mut f = f.write()?;
-    f.write_all(b"nori cat")?;
-    f.write_all(b"bird!")?;
-    Ok(())
-}
+// A lock can also be held across multiple operations.
+let mut f = f.write()?;
+write!(f, "nori cat")?;
+write!(f, "bird!")?;
 ```
 
 ## Installation
