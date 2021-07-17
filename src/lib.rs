@@ -25,19 +25,19 @@
 //! let mut f = f.write()?;
 //! f.write_all(b"nori cat")?;
 //! f.write_all(b"bird!")?;
-//! # Ok(())}
+//! # Ok(()) }
 //! ```
 
 #![forbid(future_incompatible)]
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, missing_doc_code_examples)]
 
-mod file_lock;
 mod read_guard;
+mod rw_lock;
 mod write_guard;
 
 pub(crate) mod sys;
 
-pub use file_lock::RwLock;
 pub use read_guard::RwLockReadGuard;
+pub use rw_lock::RwLock;
 pub use write_guard::RwLockWriteGuard;
