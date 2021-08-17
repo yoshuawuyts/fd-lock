@@ -1,8 +1,7 @@
-use libc::{flock, LOCK_UN};
+use rustix::fs::{flock, FlockOperation};
 use std::ops;
 use std::os::unix::io::AsRawFd;
 
-use super::utils::syscall;
 use super::RwLock;
 
 #[derive(Debug)]
@@ -35,7 +34,6 @@ impl<T: AsRawFd> ops::DerefMut for RwLockWriteGuard<'_, T> {
 impl<T: AsRawFd> Drop for RwLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        let fd = self.lock.inner.as_raw_fd();
-        let _ = syscall(unsafe { flock(fd, LOCK_UN) });
+        let _ = flock(&self.lock.as_fd(), FlockOperation::Unlock).ok();
     }
 }

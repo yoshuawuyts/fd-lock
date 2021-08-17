@@ -1,8 +1,6 @@
-use libc::{flock, LOCK_UN};
 use std::ops;
 use std::os::unix::io::AsRawFd;
 
-use super::utils::syscall;
 use super::RwLock;
 
 #[derive(Debug)]
