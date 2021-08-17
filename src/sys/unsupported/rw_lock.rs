@@ -1,8 +1,6 @@
-use libc::{flock, LOCK_EX, LOCK_NB, LOCK_SH};
 use std::io::{self, Error, ErrorKind};
 use std::os::unix::io::AsRawFd;
 
-use super::utils::syscall;
 use super::{RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]

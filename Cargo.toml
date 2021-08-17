@@ -12,7 +12,6 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-libc = "0.2.58"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies.windows-sys]
@@ -22,6 +21,9 @@ features = [
     "Win32_Storage_FileSystem",
     "Win32_System_IO",
 ]
+
+[target.'cfg(unix)'.dependencies]
+rustix = "0.32.0"
 
 [dev-dependencies]
 tempfile = "3.0.8"
