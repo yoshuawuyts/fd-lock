@@ -13,17 +13,17 @@ use crate::sys;
 /// [`RwLock`]: crate::RwLock
 #[must_use = "if unused the RwLock will immediately unlock"]
 #[derive(Debug)]
-pub struct RwLockReadGuard<'lock, T: sys::AsRaw> {
+pub struct RwLockReadGuard<'lock, T: sys::AsOpenFile> {
     guard: sys::RwLockReadGuard<'lock, T>,
 }
 
-impl<'lock, T: sys::AsRaw> RwLockReadGuard<'lock, T> {
+impl<'lock, T: sys::AsOpenFile> RwLockReadGuard<'lock, T> {
     pub(crate) fn new(guard: sys::RwLockReadGuard<'lock, T>) -> Self {
         Self { guard }
     }
 }
 
-impl<T: sys::AsRaw> ops::Deref for RwLockReadGuard<'_, T> {
+impl<T: sys::AsOpenFile> ops::Deref for RwLockReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -33,7 +33,7 @@ impl<T: sys::AsRaw> ops::Deref for RwLockReadGuard<'_, T> {
 }
 
 /// Release the lock.
-impl<T: sys::AsRaw> Drop for RwLockReadGuard<'_, T> {
+impl<T: sys::AsOpenFile> Drop for RwLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {}
 }
