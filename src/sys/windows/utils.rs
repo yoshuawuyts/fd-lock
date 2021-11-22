@@ -1,8 +1,8 @@
 use std::io;
 use std::mem;
 
-use winapi::shared::minwindef::BOOL;
-use winapi::um::minwinbase::OVERLAPPED;
+use windows_sys::Win32::Foundation::BOOL;
+use windows_sys::Win32::System::IO::OVERLAPPED;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.

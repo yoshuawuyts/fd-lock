@@ -15,8 +15,13 @@ edition = "2018"
 libc = "0.2.58"
 cfg-if = "1.0.0"
 
-[target.'cfg(windows)'.dependencies]
-winapi = "0.3.7"
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.28.0"
+features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+]
 
 [dev-dependencies]
 tempfile = "3.0.8"

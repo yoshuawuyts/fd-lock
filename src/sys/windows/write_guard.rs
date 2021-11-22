@@ -1,4 +1,4 @@
-use winapi::um::fileapi::UnlockFile;
+use windows_sys::Win32::Storage::FileSystem::UnlockFile;
 
 use std::ops;
 use std::os::windows::prelude::*;
