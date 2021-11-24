@@ -1,8 +1,9 @@
 use std::io::{self, Error, ErrorKind};
 use std::os::windows::io::AsRawHandle;
 
-use winapi::um::fileapi::LockFileEx;
-use winapi::um::minwinbase::{LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY};
+use windows_sys::Win32::Storage::FileSystem::{
+    LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
+};
 
 use super::utils::{syscall, Overlapped};
 use super::{RwLockReadGuard, RwLockWriteGuard};
