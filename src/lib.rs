@@ -30,7 +30,7 @@
 
 #![forbid(future_incompatible)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(missing_docs, rustdoc::missing_doc_code_examples)]
+#![cfg_attr(doc, warn(missing_docs, rustdoc::missing_doc_code_examples))]
 
 mod read_guard;
 mod rw_lock;
