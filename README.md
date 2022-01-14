@@ -38,8 +38,8 @@ $ cargo add fd-lock
 ```
 
 ## Safety
-This crate uses `unsafe` to interface with `libc` and `winapi`. All invariants
-have been carefully checked, and are manually enforced.
+This crate uses `unsafe` to interface with `libc` and `windows-sys`. All
+invariants have been carefully checked, and are manually enforced.
 
 ## Contributing
 Want to join us? Check out our ["Contributing" guide][contributing] and take a
@@ -52,7 +52,7 @@ look at some of these issues:
 - [LockFile function - WDC](https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-lockfile)
 - [flock(2) - Linux Man Page](https://linux.die.net/man/2/flock)
 - [`libc::flock`](https://docs.rs/libc/0.2.58/libc/fn.flock.html)
-- [`winapi::um::fileapi::LockFile`](https://docs.rs/winapi/0.3.7/x86_64-pc-windows-msvc/winapi/um/fileapi/fn.LockFile.html)
+- [`windows_sys::Win32::Storage::FileSystem::LockFile`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/Storage/FileSystem/fn.LockFile.html)
 
 ## License
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
