@@ -1,6 +1,6 @@
 [package]
 name = "fd-lock"
-version = "3.0.2"
+version = "3.0.3"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/yoshuawuyts/fd-lock"
 documentation = "https://docs.rs/fd-lock"
