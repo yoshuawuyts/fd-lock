@@ -65,6 +65,6 @@ impl<T: AsRawFd> RwLock<T> {
         //
         // Once I/O safety is stablized in std, we can switch the public API to
         // use `AsFd` instead of `AsRawFd` and eliminate this `unsafe` block.
-        unsafe { BorrowedFd::borrow_raw_fd(self.inner.as_raw_fd()) }
+        unsafe { BorrowedFd::borrow_raw(self.inner.as_raw_fd()) }
     }
 }
