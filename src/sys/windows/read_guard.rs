@@ -1,3 +1,4 @@
+use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Storage::FileSystem::UnlockFile;
 
 use std::ops;
@@ -23,7 +24,7 @@ impl<T: AsRawHandle> ops::Deref for RwLockReadGuard<'_, T> {
 impl<T: AsRawHandle> Drop for RwLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        let handle = self.lock.inner.as_raw_handle();
+        let handle = self.lock.inner.as_raw_handle() as HANDLE;
         syscall(unsafe { UnlockFile(handle, 0, 0, 1, 0) })
             .expect("Could not unlock the file descriptor");
     }
