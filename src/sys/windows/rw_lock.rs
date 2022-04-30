@@ -1,6 +1,7 @@
 use std::io::{self, Error, ErrorKind};
 use std::os::windows::io::AsRawHandle;
 
+use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Storage::FileSystem::{
     LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
 };
@@ -22,7 +23,7 @@ impl<T: AsRawHandle> RwLock<T> {
     #[inline]
     pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle();
+        let handle = self.inner.as_raw_handle() as HANDLE;
         let overlapped = Overlapped::zero();
         let flags = 0;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
@@ -31,7 +32,7 @@ impl<T: AsRawHandle> RwLock<T> {
 
     #[inline]
     pub fn try_read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
-        let handle = self.inner.as_raw_handle();
+        let handle = self.inner.as_raw_handle() as HANDLE;
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY;
 
@@ -43,7 +44,7 @@ impl<T: AsRawHandle> RwLock<T> {
     #[inline]
     pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle();
+        let handle = self.inner.as_raw_handle() as HANDLE;
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_EXCLUSIVE_LOCK;
         syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
@@ -52,7 +53,7 @@ impl<T: AsRawHandle> RwLock<T> {
 
     #[inline]
     pub fn try_write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
-        let handle = self.inner.as_raw_handle();
+        let handle = self.inner.as_raw_handle() as HANDLE;
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY | LOCKFILE_EXCLUSIVE_LOCK;
 
