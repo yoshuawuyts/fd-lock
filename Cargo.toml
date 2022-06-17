@@ -23,7 +23,7 @@ features = [
 ]
 
 [target.'cfg(unix)'.dependencies]
-rustix = "0.34.0"
+rustix = { version = "0.35.6", features = ["fs"] }
 
 [dev-dependencies]
 tempfile = "3.0.8"
