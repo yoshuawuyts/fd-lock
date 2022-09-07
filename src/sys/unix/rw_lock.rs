@@ -18,7 +18,7 @@ impl<T: AsRawFd> RwLock<T> {
 
     #[inline]
     pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
-        flock(&self.as_fd(), FlockOperation::LockExclusive)?;
+        self.acquire_write_lock()?;
         Ok(RwLockWriteGuard::new(self))
     }
 
@@ -35,7 +35,7 @@ impl<T: AsRawFd> RwLock<T> {
 
     #[inline]
     pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
-        flock(&self.as_fd(), FlockOperation::LockShared)?;
+        self.acquire_read_lock()?;
         Ok(RwLockReadGuard::new(self))
     }
 
@@ -66,5 +66,24 @@ impl<T: AsRawFd> RwLock<T> {
         // Once I/O safety is stablized in std, we can switch the public API to
         // use `AsFd` instead of `AsRawFd` and eliminate this `unsafe` block.
         unsafe { BorrowedFd::borrow_raw(self.inner.as_raw_fd()) }
+    }
+
+    pub(crate) fn acquire_read_lock(&self) -> io::Result<()> {
+        let fd = self.as_fd();
+        flock(&fd, FlockOperation::LockShared)?;
+        Ok(())
+    }
+
+    pub(crate) fn acquire_write_lock(&self) -> io::Result<()> {
+        let fd = self.as_fd();
+        flock(&fd, FlockOperation::LockExclusive)?;
+        Ok(())
+    }
+
+    pub(crate) fn release_lock(&self) -> io::Result<()> {
+        let fd = self.as_fd();
+
+        flock(&fd, FlockOperation::Unlock)?;
+        Ok(())
     }
 }

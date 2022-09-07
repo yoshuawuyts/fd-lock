@@ -1,7 +1,10 @@
+use crate::owned_read_guard::OwnedRwLockReadGuard;
+use crate::owned_write_guard::OwnedRwLockWriteGuard;
 use crate::read_guard::RwLockReadGuard;
 use crate::sys;
 use crate::write_guard::RwLockWriteGuard;
 use std::io;
+use std::sync::Arc;
 
 /// Advisory reader-writer lock for files.
 ///
@@ -11,7 +14,7 @@ use std::io;
 /// allows for read-only access (shared access).
 #[derive(Debug)]
 pub struct RwLock<T: sys::AsRaw> {
-    lock: sys::RwLock<T>,
+    pub(crate) lock: sys::RwLock<T>,
 }
 
 impl<T: sys::AsRaw> RwLock<T> {
@@ -57,6 +60,12 @@ impl<T: sys::AsRaw> RwLock<T> {
         Ok(RwLockReadGuard::new(guard))
     }
 
+    pub fn read_owned(self: Arc<Self>) -> io::Result<OwnedRwLockReadGuard<T>> {
+        let _ = self.lock.acquire_read_lock()?;
+        let guard = OwnedRwLockReadGuard::new(self);
+        Ok(guard)
+    }
+
     /// Attempts to acquire this lock with shared read access.
     ///
     /// If the access could not be granted at this time, then `Err` is returned.
@@ -96,6 +105,12 @@ impl<T: sys::AsRaw> RwLock<T> {
     pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
         let guard = self.lock.write()?;
         Ok(RwLockWriteGuard::new(guard))
+    }
+
+    pub fn write_owned(self: Arc<Self>) -> io::Result<OwnedRwLockWriteGuard<T>> {
+        let _ = self.lock.acquire_write_lock()?;
+        let guard = OwnedRwLockWriteGuard::new(self);
+        Ok(guard)
     }
 
     /// Attempts to lock this lock with exclusive write access.

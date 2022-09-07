@@ -32,6 +32,8 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![cfg_attr(doc, warn(missing_docs, rustdoc::missing_doc_code_examples))]
 
+mod owned_read_guard;
+mod owned_write_guard;
 mod read_guard;
 mod rw_lock;
 mod write_guard;
