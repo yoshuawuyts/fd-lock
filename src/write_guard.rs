@@ -11,10 +11,6 @@ use crate::sys;
 /// [`write`]: crate::RwLock::write
 /// [`try_write`]: crate::RwLock::try_write
 /// [`RwLock`]: crate::RwLock
-///
-/// # Panics
-///
-/// Dropping this type may panic if the lock fails to unlock.
 #[must_use = "if unused the RwLock will immediately unlock"]
 #[derive(Debug)]
 pub struct RwLockWriteGuard<'lock, T: sys::AsRaw> {

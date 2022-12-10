@@ -11,10 +11,6 @@ use crate::sys;
 /// [`read`]: crate::RwLock::read
 /// [`try_read`]: crate::RwLock::try_read
 /// [`RwLock`]: crate::RwLock
-///
-/// # Panics
-///
-/// Dropping this type may panic if the lock fails to unlock.
 #[must_use = "if unused the RwLock will immediately unlock"]
 #[derive(Debug)]
 pub struct RwLockReadGuard<'lock, T: sys::AsRaw> {
