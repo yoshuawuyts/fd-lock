@@ -1,6 +1,7 @@
 use std::io::{self, Error, ErrorKind};
 use std::os::windows::io::AsRawHandle;
 
+use windows_sys::Win32::Foundation::ERROR_LOCK_VIOLATION;
 use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Storage::FileSystem::{
     LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
@@ -36,8 +37,12 @@ impl<T: AsRawHandle> RwLock<T> {
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY;
 
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
-            .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
+        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) }).map_err(
+            |error| match error.raw_os_error().map(|error_code| error_code as u32) {
+                Some(ERROR_LOCK_VIOLATION) => Error::from(ErrorKind::WouldBlock),
+                _ => error,
+            },
+        )?;
         Ok(RwLockReadGuard { lock: self })
     }
 
@@ -57,8 +62,12 @@ impl<T: AsRawHandle> RwLock<T> {
         let overlapped = Overlapped::zero();
         let flags = LOCKFILE_FAIL_IMMEDIATELY | LOCKFILE_EXCLUSIVE_LOCK;
 
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })
-            .map_err(|_| Error::from(ErrorKind::WouldBlock))?;
+        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) }).map_err(
+            |error| match error.raw_os_error().map(|error_code| error_code as u32) {
+                Some(ERROR_LOCK_VIOLATION) => Error::from(ErrorKind::WouldBlock),
+                _ => error,
+            },
+        )?;
         Ok(RwLockWriteGuard { lock: self })
     }
 
