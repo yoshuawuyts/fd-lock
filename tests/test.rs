@@ -63,3 +63,32 @@ fn write_and_read_lock() {
 
     drop(g0);
 }
+
+#[cfg(windows)]
+mod windows {
+    use super::*;
+    use std::os::windows::fs::OpenOptionsExt;
+
+    #[test]
+    fn try_lock_error() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("lockfile");
+
+        // On Windows, opening with an access_mode as 0 will prevent all locking operations from succeeding, simulating an I/O error.
+        let mut l0 = RwLock::new(
+            File::options()
+                .create(true)
+                .read(true)
+                .write(true)
+                .access_mode(0)
+                .open(path)
+                .unwrap(),
+        );
+
+        let err1 = l0.try_read().unwrap_err();
+        assert!(matches!(err1.kind(), ErrorKind::PermissionDenied));
+
+        let err2 = l0.try_write().unwrap_err();
+        assert!(matches!(err2.kind(), ErrorKind::PermissionDenied));
+    }
+}
