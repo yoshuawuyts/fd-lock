@@ -25,7 +25,6 @@ impl<T: AsRawHandle> Drop for RwLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
         let handle = self.lock.inner.as_raw_handle() as HANDLE;
-        syscall(unsafe { UnlockFile(handle, 0, 0, 1, 0) })
-            .expect("Could not unlock the file descriptor");
+        let _ = syscall(unsafe { UnlockFile(handle, 0, 0, 1, 0) });
     }
 }
