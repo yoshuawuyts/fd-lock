@@ -10,7 +10,7 @@ cfg_if! {
         pub use windows::*;
         #[doc(no_inline)]
         pub(crate) use std::os::windows::prelude::AsRawHandle as AsRaw;
-    } else if #[cfg(wasi)] {
+    } else if #[cfg(target_os = "wasi")] {
         mod wasi_sys;
         #[doc(no_inline)]
         pub(crate) use std::os::wasi::prelude::AsRawFd as AsRaw;
