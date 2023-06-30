@@ -4,7 +4,7 @@ use std::os::windows::io::AsRawHandle;
 use windows_sys::Win32::Foundation::ERROR_LOCK_VIOLATION;
 use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Storage::FileSystem::{
-    LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
+    LockFileEx, UnlockFile, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
 };
 
 use super::utils::{syscall, Overlapped};
@@ -23,11 +23,7 @@ impl<T: AsRawHandle> RwLock<T> {
 
     #[inline]
     pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
-        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle() as HANDLE;
-        let overlapped = Overlapped::zero();
-        let flags = 0;
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
+        self.acquire_read_lock()?;
         Ok(RwLockReadGuard { lock: self })
     }
 
@@ -48,11 +44,7 @@ impl<T: AsRawHandle> RwLock<T> {
 
     #[inline]
     pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
-        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
-        let handle = self.inner.as_raw_handle() as HANDLE;
-        let overlapped = Overlapped::zero();
-        let flags = LOCKFILE_EXCLUSIVE_LOCK;
-        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
+        self.acquire_write_lock()?;
         Ok(RwLockWriteGuard { lock: self })
     }
 
@@ -77,5 +69,29 @@ impl<T: AsRawHandle> RwLock<T> {
         T: Sized,
     {
         self.inner
+    }
+
+    pub(crate) fn acquire_read_lock(&self) -> io::Result<()> {
+        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
+        let handle = self.inner.as_raw_handle() as HANDLE;
+        let overlapped = Overlapped::zero();
+        let flags = 0;
+        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
+        Ok(())
+    }
+
+    pub(crate) fn acquire_write_lock(&self) -> io::Result<()> {
+        // See: https://stackoverflow.com/a/9186532, https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex
+        let handle = self.inner.as_raw_handle() as HANDLE;
+        let overlapped = Overlapped::zero();
+        let flags = LOCKFILE_EXCLUSIVE_LOCK;
+        syscall(unsafe { LockFileEx(handle, flags, 0, 1, 0, overlapped.raw()) })?;
+        Ok(())
+    }
+
+    pub(crate) fn release_lock(&self) -> io::Result<()> {
+        let handle = self.lock.inner.as_raw_handle() as HANDLE;
+        syscall(unsafe { UnlockFile(handle, 0, 0, 1, 0) })
+            .expect("Could not unlock the file descriptor");
     }
 }
