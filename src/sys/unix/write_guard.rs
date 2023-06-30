@@ -1,21 +1,21 @@
+use rustix::fd::AsFd;
 use rustix::fs::{flock, FlockOperation};
 use std::ops;
-use std::os::unix::io::AsRawFd;
 
 use super::RwLock;
 
 #[derive(Debug)]
-pub struct RwLockWriteGuard<'lock, T: AsRawFd> {
+pub struct RwLockWriteGuard<'lock, T: AsFd> {
     lock: &'lock mut RwLock<T>,
 }
 
-impl<'lock, T: AsRawFd> RwLockWriteGuard<'lock, T> {
+impl<'lock, T: AsFd> RwLockWriteGuard<'lock, T> {
     pub(crate) fn new(lock: &'lock mut RwLock<T>) -> Self {
         Self { lock }
     }
 }
 
-impl<T: AsRawFd> ops::Deref for RwLockWriteGuard<'_, T> {
+impl<T: AsFd> ops::Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -24,16 +24,16 @@ impl<T: AsRawFd> ops::Deref for RwLockWriteGuard<'_, T> {
     }
 }
 
-impl<T: AsRawFd> ops::DerefMut for RwLockWriteGuard<'_, T> {
+impl<T: AsFd> ops::DerefMut for RwLockWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.lock.inner
     }
 }
 
-impl<T: AsRawFd> Drop for RwLockWriteGuard<'_, T> {
+impl<T: AsFd> Drop for RwLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        let _ = flock(&self.lock.as_fd(), FlockOperation::Unlock).ok();
+        let _ = flock(&self.lock.inner.as_fd(), FlockOperation::Unlock).ok();
     }
 }

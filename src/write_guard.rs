@@ -13,17 +13,17 @@ use crate::sys;
 /// [`RwLock`]: crate::RwLock
 #[must_use = "if unused the RwLock will immediately unlock"]
 #[derive(Debug)]
-pub struct RwLockWriteGuard<'lock, T: sys::AsRaw> {
+pub struct RwLockWriteGuard<'lock, T: sys::AsOpenFile> {
     guard: sys::RwLockWriteGuard<'lock, T>,
 }
 
-impl<'lock, T: sys::AsRaw> RwLockWriteGuard<'lock, T> {
+impl<'lock, T: sys::AsOpenFile> RwLockWriteGuard<'lock, T> {
     pub(crate) fn new(guard: sys::RwLockWriteGuard<'lock, T>) -> Self {
         Self { guard }
     }
 }
 
-impl<T: sys::AsRaw> ops::Deref for RwLockWriteGuard<'_, T> {
+impl<T: sys::AsOpenFile> ops::Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -32,7 +32,7 @@ impl<T: sys::AsRaw> ops::Deref for RwLockWriteGuard<'_, T> {
     }
 }
 
-impl<T: sys::AsRaw> ops::DerefMut for RwLockWriteGuard<'_, T> {
+impl<T: sys::AsOpenFile> ops::DerefMut for RwLockWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.guard.deref_mut()
@@ -40,7 +40,7 @@ impl<T: sys::AsRaw> ops::DerefMut for RwLockWriteGuard<'_, T> {
 }
 
 /// Release the lock.
-impl<T: sys::AsRaw> Drop for RwLockWriteGuard<'_, T> {
+impl<T: sys::AsOpenFile> Drop for RwLockWriteGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {}
 }

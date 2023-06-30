@@ -10,11 +10,11 @@ use std::io;
 /// underlying data (exclusive access) and the read portion of this lock typically
 /// allows for read-only access (shared access).
 #[derive(Debug)]
-pub struct RwLock<T: sys::AsRaw> {
+pub struct RwLock<T: sys::AsOpenFile> {
     lock: sys::RwLock<T>,
 }
 
-impl<T: sys::AsRaw> RwLock<T> {
+impl<T: sys::AsOpenFile> RwLock<T> {
     /// Create a new instance.
     ///
     /// # Examples
