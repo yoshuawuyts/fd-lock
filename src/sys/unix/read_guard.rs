@@ -2,7 +2,7 @@ use rustix::fd::AsFd;
 use rustix::fs::FlockOperation;
 use std::ops;
 
-use super::RwLock;
+use super::{compatible_unix_lock, RwLock};
 
 #[derive(Debug)]
 pub struct RwLockReadGuard<'lock, T: AsFd> {
@@ -27,9 +27,6 @@ impl<T: AsFd> ops::Deref for RwLockReadGuard<'_, T> {
 impl<T: AsFd> Drop for RwLockReadGuard<'_, T> {
     #[inline]
     fn drop(&mut self) {
-        #[cfg(not(target_os = "solaris"))]
-        let _ = rustix::fs::flock(self.lock.inner.as_fd(), FlockOperation::Unlock).ok();
-        #[cfg(target_os = "solaris")]
-        let _ = rustix::fs::fcntl_lock(self.lock.inner.as_fd(), FlockOperation::Unlock).ok();
+        let _ = compatible_unix_lock(self.lock.inner.as_fd(), FlockOperation::Unlock).ok();
     }
 }
