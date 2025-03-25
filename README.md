@@ -67,6 +67,6 @@ look at some of these issues:
 [8]: https://docs.rs/fd-lock
 
 [releases]: https://github.com/yoshuawuyts/fd-lock/releases
-[contributing]: https://github.com/yoshuawuyts/fd-lock/blob/master.github/CONTRIBUTING.md
+[contributing]: https://github.com/yoshuawuyts/fd-lock/blob/master/.github/CONTRIBUTING.md
 [good-first-issue]: https://github.com/yoshuawuyts/fd-lock/labels/good%20first%20issue
 [help-wanted]: https://github.com/yoshuawuyts/fd-lock/labels/help%20wanted
