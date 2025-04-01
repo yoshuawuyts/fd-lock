@@ -60,7 +60,7 @@ look at some of these issues:
 [1]: https://img.shields.io/crates/v/fd-lock.svg?style=flat-square
 [2]: https://crates.io/crates/fd-lock
 [3]: https://img.shields.io/travis/yoshuawuyts/fd-lock/master.svg?style=flat-square
-[4]: https://travis-ci.org/yoshuawuyts/fd-lock
+[4]: https://app.travis-ci.com/yoshuawuyts/fd-lock
 [5]: https://img.shields.io/crates/d/fd-lock.svg?style=flat-square
 [6]: https://crates.io/crates/fd-lock
 [7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
