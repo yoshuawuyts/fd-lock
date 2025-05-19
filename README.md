@@ -1,6 +1,6 @@
 # fd-lock
 [![crates.io version][1]][2] 
-[![downloads][5]][6] [![docs.rs docs][7]][8]
+[![downloads][4]][5] [![docs.rs docs][6]][7]
 
 Advisory cross-platform file locks using file descriptors. Adapted from
 [mafintosh/fd-lock].
@@ -11,7 +11,7 @@ but solely to coordinate file access.
 
 [mafintosh/fd-lock]: https://github.com/mafintosh/fd-lock
 
-- [Documentation][8]
+- [Documentation][7]
 - [Crates.io][2]
 - [Releases][releases]
 
@@ -59,12 +59,11 @@ look at some of these issues:
 
 [1]: https://img.shields.io/crates/v/fd-lock.svg?style=flat-square
 [2]: https://crates.io/crates/fd-lock
-[3]: https://img.shields.io/travis/yoshuawuyts/fd-lock/master.svg?style=flat-square
-[4]: https://travis-ci.org/yoshuawuyts/fd-lock
-[5]: https://img.shields.io/crates/d/fd-lock.svg?style=flat-square
-[6]: https://crates.io/crates/fd-lock
-[7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
-[8]: https://docs.rs/fd-lock
+[3]: https://travis-ci.org/yoshuawuyts/fd-lock
+[4]: https://img.shields.io/crates/d/fd-lock.svg?style=flat-square
+[5]: https://crates.io/crates/fd-lock
+[6]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
+[7]: https://docs.rs/fd-lock
 
 [releases]: https://github.com/yoshuawuyts/fd-lock/releases
 [contributing]: https://github.com/yoshuawuyts/fd-lock/blob/master/.github/CONTRIBUTING.md
