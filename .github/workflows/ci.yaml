@@ -74,6 +74,20 @@ jobs:
         command: test
         args: --all
 
+    - name: update lockfile for windows-sys v0.60.0
+      uses: actions-rs/cargo@v1
+      if: runner.os == 'Windows'
+      with:
+        command: update
+        args: -p windows-sys --precise 0.60.0
+
+    - name: check windows-sys v0.60.0
+      uses: actions-rs/cargo@v1
+      if: runner.os == 'Windows'
+      with:
+        command: test
+        args: --all
+
   check_fmt_and_docs:
     name: Checking fmt and docs
     runs-on: ubuntu-latest
