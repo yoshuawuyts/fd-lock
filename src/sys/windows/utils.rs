@@ -1,7 +1,7 @@
 use std::io;
 use std::mem;
 
-use windows_sys::Win32::Foundation::BOOL;
+use windows_sys::core::BOOL;
 use windows_sys::Win32::System::IO::OVERLAPPED;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
