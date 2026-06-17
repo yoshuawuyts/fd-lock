@@ -1,4 +1,4 @@
-# fd-lock
+# fd-lock (deprecated)
 [![crates.io version][1]][2] 
 [![downloads][5]][6] [![docs.rs docs][7]][8]
 
@@ -7,7 +7,13 @@ Advisory cross-platform file locks using file descriptors. Adapted from
 
 Note that advisory lock compliance is opt-in, and can freely be ignored by other
 parties. This means this crate __should never be used for security purposes__,
-but solely to coordinate file access.
+but solely to coordinate file access.o
+
+> [!IMPORTANT]
+> 
+> Rust 1.89 has introduced the `File::lock` family of APIs ([`File::lock`](https://doc.rust-lang.org/std/fs/struct.File.html#method.lock), [`File::lock_shared`](https://doc.rust-lang.org/std/fs/struct.File.html#method.lock_shared), [`File::try_lock`](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock), [`File::try_lock_shared`](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock_shared), [`File::unlock`](https://doc.rust-lang.org/std/fs/struct.File.html#method.unlock)). While not identical in functionality, these APIs cover the most important use cases `fd-lock` provides. To that end we are suspending maintenance of this crate, and suggest users switch to the stdlib APIs instead.
+> 
+> For more details on the changes between this crate and the stdlib APIs, see issue [#59](https://github.com/yoshuawuyts/fd-lock/issues/59).
 
 [mafintosh/fd-lock]: https://github.com/mafintosh/fd-lock
 
